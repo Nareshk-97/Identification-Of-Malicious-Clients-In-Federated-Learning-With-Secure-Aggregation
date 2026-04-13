@@ -1,0 +1,185 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>FedGT Analysis Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --bg: #0f172a;
+            --card-bg: #1e293b;
+            --text: #f8fafc;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text);
+            padding: 2rem;
+            margin: 0;
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        h1 {
+            font-weight: 800;
+            color: #818cf8;
+            margin: 0;
+        }
+
+        .back-btn {
+            background: var(--card-bg);
+            color: #94a3b8;
+            text-decoration: none;
+            padding: 0.75rem 1.5rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .back-btn:hover {
+            background: #334155;
+            color: white;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2.5rem;
+        }
+
+        .stat-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            color: #94a3b8;
+            font-size: 0.875rem;
+            margin: 0 0 0.5rem 0;
+        }
+
+        .stat-card p {
+            font-size: 2rem;
+            font-weight: 800;
+            margin: 0;
+            color: #f472b6;
+        }
+
+        .charts-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 2rem;
+        }
+
+        .chart-card {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .chart-card h2 {
+            font-size: 1.25rem;
+            margin-top: 0;
+            margin-bottom: 1.5rem;
+            color: #818cf8;
+        }
+
+        canvas {
+            max-height: 350px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>System Analytics Dashboard</h1>
+        <a href="/" class="back-btn">← Back to Predictor</a>
+    </div>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Model Accuracy</h3>
+            <p>{{ "%.2f"|format(metrics.accuracy * 100) }}%</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Samples</h3>
+            <p>{{ metrics.total_samples }}</p>
+        </div>
+        <div class="stat-card">
+            <h3>Algorithm</h3>
+            <p>Random Forest</p>
+        </div>
+    </div>
+
+    <div class="charts-container">
+        <div class="chart-card">
+            <h2>Dataset Distribution</h2>
+            <canvas id="distChart"></canvas>
+        </div>
+        <div class="chart-card">
+            <h2>Feature Importance</h2>
+            <canvas id="importanceChart"></canvas>
+        </div>
+    </div>
+
+    <script>
+        const metrics = {{ metrics| tojson }};
+
+        // Distribution Chart
+        new Chart(document.getElementById('distChart'), {
+            type: 'doughnut',
+            data: {
+                labels: Object.keys(metrics.label_counts),
+                datasets: [{
+                    data: Object.values(metrics.label_counts),
+                    backgroundColor: ['#6366f1', '#a855f7', '#ec4899', '#ef4444', '#f59e0b', '#10b981'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { position: 'right', labels: { color: '#94a3b8' } }
+                }
+            }
+        });
+
+        // Feature Importance Chart
+        new Chart(document.getElementById('importanceChart'), {
+            type: 'bar',
+            data: {
+                labels: Object.keys(metrics.feature_importance),
+                datasets: [{
+                    label: 'Importance Score',
+                    data: Object.values(metrics.feature_importance),
+                    backgroundColor: '#818cf8',
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                plugins: {
+                    legend: { display: false }
+                },
+                scales: {
+                    y: { beginAtZero: true, grid: { color: 'rgba(255,255,255,0.05)' }, ticks: { color: '#94a3b8' } },
+                    x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>
